@@ -1,0 +1,48 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "abrar-shop",
+          "appId": "1:375392958324:android:5a5d5dafd4acfa5c2d1e21",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "abrar-shop",
+          "configurations": {
+            "android": "1:375392958324:android:5a5d5dafd4acfa5c2d1e21",
+            "web": "1:375392958324:web:539f950d847881c62d1e21"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "site": "abraradmin",
+    "public": "build/web",
+    "headers": [
+      {
+        "source": "**/*.@(js|css|html|json|woff|woff2|ttf|svg|png|jpg|jpeg|gif|eot|mp4|webp|otf|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-store"
+          }
+        ]
+      }
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
