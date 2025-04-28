@@ -921,45 +921,51 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
       scrollDirection: Axis.horizontal, // Enables horizontal scrolling
       child: SingleChildScrollView(
         child: DataTable(
-          // columnSpacing: 20,
+          // columnSpacing: 8,
           headingRowColor: WidgetStateProperty.all(Colors.blue.shade100),
           border: TableBorder.all(color: Colors.black12),
           columns: const [
             DataColumn(label: Text('No.')),
             DataColumn(label: Text('Image')),
-            DataColumn(label: Text('Name')),
+            DataColumn(label: Text('Name'), columnWidth: FixedColumnWidth(200)),
             DataColumn(label: Text('Category')),
             DataColumn(label: Text('Brand')),
+            DataColumn(label: Text('Stock')),
             DataColumn(label: Text('Actions')),
           ],
           rows: products.asMap().entries.map((entry) {
             int index = products.length - entry.key; // Reverse index
             var doc = entry.value;
-            String imageUrl =
-                doc['images'] != null && (doc['images'] as List).isNotEmpty
-                    ? doc['images'][0] // First image
-                    : 'https://via.placeholder.com/80'; // Placeholder image
+            String imageUrl = doc['images'] != null &&
+                    (doc['images'] as List).isNotEmpty
+                ? doc['images'][0] // First image
+                : 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'; // Placeholder image
 
             return DataRow(cells: [
               DataCell(Text(index.toString())),
-              DataCell(GestureDetector(
-                onTap: () {
-                  Get.to(() => ProductDetails(
-                      product: ProductModel.fromQuerySnapshot(doc)));
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: Image.network(
-                    imageUrl,
-                    height: 56,
-                    width: 56,
-                    fit: BoxFit.cover,
+              DataCell(
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => ProductDetails(
+                        product: ProductModel.fromQuerySnapshot(doc)));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.shade100.withValues(alpha: .02),
+                      border: Border.all(color: Colors.black12),
+                      image: DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
-              )),
+              ),
               DataCell(Text(doc['name'])),
               DataCell(Text(doc['category'])),
               DataCell(Text(doc['brand'])),
+              DataCell(Text(doc['stock'].toString())),
               DataCell(Row(
                 children: [
                   IconButton(
@@ -992,10 +998,10 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
       itemBuilder: (context, index) {
         var doc = products[index];
         int reversedIndex = products.length - index; // Reverse index
-        String imageUrl =
-            doc['images'] != null && (doc['images'] as List).isNotEmpty
-                ? doc['images'][0]
-                : 'https://via.placeholder.com/80';
+        String imageUrl = doc['images'] != null &&
+                (doc['images'] as List).isNotEmpty
+            ? doc['images'][0]
+            : 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'; // Placeholder image
 
         return Container(
           decoration: BoxDecoration(
@@ -1014,6 +1020,7 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
                   children: [
                     //
                     Row(spacing: 16, children: [
+                      //
                       GestureDetector(
                         onTap: () {
                           Get.to(() => ProductDetails(
@@ -1026,13 +1033,12 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
                             border: Border.all(color: Colors.black12),
                             image: DecorationImage(
                               fit: BoxFit.cover,
-                              image: NetworkImage(imageUrl),
+                              image: NetworkImage(imageUrl), // Cached Image
                             ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
                       ),
-
                       //
                       Expanded(
                         child: Column(
@@ -1113,7 +1119,7 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
                               spacing: 4,
                               children: [
                                 const Text(
-                                  'Price:',
+                                  'Regular:',
                                   style: TextStyle(
                                     color: Colors.grey,
                                     fontSize: 12,
@@ -1145,6 +1151,27 @@ class _AllProductsAdminState extends State<AllProductsAdmin> {
                                   (doc['salePrice'] as num).toStringAsFixed(0),
                                   style: const TextStyle(
                                     color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            //
+                            Row(
+                              spacing: 4,
+                              children: [
+                                const Text(
+                                  'Cost:',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                Text(
+                                  (doc['costPrice'] as num).toStringAsFixed(0),
+                                  style: const TextStyle(
+                                    color: Colors.blue,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),

@@ -2,12 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProductModel {
   String id;
-  String sku;
+  int sku;
   String name;
   String slug;
   String description;
   double regularPrice;
   double salePrice;
+  double costPrice;
   int stock;
   List<String> images;
   String category;
@@ -24,6 +25,7 @@ class ProductModel {
     required this.description,
     required this.regularPrice,
     required this.salePrice,
+    required this.costPrice,
     required this.stock,
     required this.images,
     required this.category,
@@ -36,12 +38,13 @@ class ProductModel {
   /// empty
   static ProductModel empty() => ProductModel(
         id: '',
-        sku: '',
+        sku: 0,
         name: '',
         slug: '',
         description: '',
         regularPrice: 0,
         salePrice: 0,
+        costPrice: 0,
         stock: 0,
         images: [],
         category: '',
@@ -59,12 +62,13 @@ class ProductModel {
       //
       return ProductModel(
         id: data['id'] ?? '',
-        sku: data['sku'] ?? '',
+        sku: data['sku'] ?? 0,
         name: data['name'] ?? '',
         slug: data['slug'] ?? '',
         description: data['description'] ?? '',
         regularPrice: data['regularPrice'].toDouble() ?? 0,
         salePrice: data['salePrice'].toDouble() ?? 0,
+        costPrice: data['costPrice'].toDouble() ?? 0,
         stock: data['stock'] ?? 0,
         images: List<String>.from(data['images'] ?? []),
         category: data['category'] ?? '',
@@ -85,12 +89,13 @@ class ProductModel {
     //
     return ProductModel(
       id: data['id'] ?? '',
-      sku: data['sku'] ?? '',
+      sku: data['sku'] ?? 0,
       name: data['name'] ?? '',
       slug: data['slug'] ?? '',
       description: data['description'] ?? '',
       regularPrice: data['regularPrice'].toDouble() ?? 0,
       salePrice: data['salePrice'].toDouble() ?? 0,
+      costPrice: data['costPrice'].toDouble() ?? 0,
       stock: data['stock'] ?? 0,
       images: List<String>.from(data['images'] ?? []),
       category: data['category'] ?? '',
@@ -111,6 +116,7 @@ class ProductModel {
       'description': description,
       'regularPrice': regularPrice,
       'salePrice': salePrice,
+      'costPrice': costPrice,
       'stock': stock,
       'images': images,
       'category': category,

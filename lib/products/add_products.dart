@@ -24,6 +24,7 @@ class _AddProductState extends State<AddProduct> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _regularPriceController = TextEditingController();
   final TextEditingController _salePriceController = TextEditingController();
+  final TextEditingController _costPriceController = TextEditingController();
   final TextEditingController _stockPriceController = TextEditingController();
   String? _selectedCategory;
   String? _selectedSubCategory;
@@ -183,13 +184,13 @@ class _AddProductState extends State<AddProduct> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      //regular
+                      //cost
                       Expanded(
                         flex: 3,
                         child: TextFormField(
-                          controller: _regularPriceController,
+                          controller: _costPriceController,
                           decoration: InputDecoration(
-                            labelText: 'Regular Price',
+                            labelText: 'Cost Price',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8)),
                             contentPadding: const EdgeInsets.symmetric(
@@ -198,13 +199,12 @@ class _AddProductState extends State<AddProduct> {
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter the regular price';
+                              return 'Please enter the cost price';
                             }
                             return null;
                           },
                         ),
                       ),
-
                       const SizedBox(width: 10),
 
                       // sale
@@ -229,6 +229,30 @@ class _AddProductState extends State<AddProduct> {
                             double salePrice = double.parse(value);
                             if (regularPrice < salePrice) {
                               return 'Regular price less than sale price';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      //regular
+                      Expanded(
+                        flex: 3,
+                        child: TextFormField(
+                          controller: _regularPriceController,
+                          decoration: InputDecoration(
+                            labelText: 'Regular Price',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 10),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the regular price';
                             }
                             return null;
                           },
@@ -474,7 +498,7 @@ class _AddProductState extends State<AddProduct> {
                               ),
                             ),
                           );
-                        }).toList(),
+                        }),
                         GestureDetector(
                           onTap: _pickImage,
                           child: Container(
@@ -536,20 +560,24 @@ class _AddProductState extends State<AddProduct> {
 
                                 //
                                 await _uploadImages(id);
+                                int sku = await getNextSku();
 
-                                //   //
+                                //
                                 ProductModel product = ProductModel(
                                   id: id,
-                                  sku: '',
+                                  sku: sku,
                                   name: _nameController.text.trim(),
                                   slug: slug,
                                   description:
                                       _descriptionController.text.trim() ?? '',
                                   regularPrice: double.parse(
                                       _regularPriceController.text),
-                                  salePrice:
-                                      double.parse(_salePriceController.text),
-                                  stock: int.parse(_stockPriceController.text),
+                                  salePrice: double.parse(
+                                      _salePriceController.text.trim()),
+                                  costPrice: double.parse(
+                                      _costPriceController.text.trim()),
+                                  stock: int.parse(
+                                      _stockPriceController.text.trim()),
                                   images: _imageUrls,
                                   category: _selectedCategory ?? "",
                                   subCategory: _selectedSubCategory ?? "",
@@ -598,5 +626,23 @@ class _AddProductState extends State<AddProduct> {
   String _generateSlug(String name) {
     // Simple slug generation: lowercase, replace spaces with hyphens
     return name.toLowerCase().replaceAll(' ', '-');
+  }
+
+  // sku
+  Future<int> getNextSku() async {
+    final skuTrackerRef =
+        FirebaseFirestore.instance.collection('settings').doc('skuTracker');
+    final docSnapshot = await skuTrackerRef.get();
+
+    if (docSnapshot.exists) {
+      final data = docSnapshot.data();
+      final lastSku = data?['lastSku'] ?? 0;
+      final nextSku = lastSku + 1;
+      return nextSku;
+    } else {
+      // If skuTracker does not exist yet
+      await skuTrackerRef.set({'lastSku': 0});
+      return 1;
+    }
   }
 }

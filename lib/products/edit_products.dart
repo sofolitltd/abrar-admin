@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,6 +26,7 @@ class _EditProductState extends State<EditProduct> {
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _regularPriceController = TextEditingController();
   final TextEditingController _salePriceController = TextEditingController();
+  final TextEditingController _costPriceController = TextEditingController();
   final TextEditingController _stockPriceController = TextEditingController();
   String? _selectedCategory;
   String? _selectedSubCategory;
@@ -32,7 +34,7 @@ class _EditProductState extends State<EditProduct> {
   bool _isFeatured = false;
   bool isLoading = false;
 
-  List<File> _imageFiles = [];
+  List<XFile> _imageFiles = [];
   List<String> _imageUrls = [];
 
   final categoryController = Get.put(CategoryController());
@@ -48,6 +50,7 @@ class _EditProductState extends State<EditProduct> {
     _regularPriceController.text =
         widget.product.regularPrice.toStringAsFixed(0);
     _salePriceController.text = widget.product.salePrice.toStringAsFixed(0);
+    _costPriceController.text = widget.product.costPrice.toStringAsFixed(0);
     _stockPriceController.text = widget.product.stock.toStringAsFixed(0);
 
     // _selectedBrand = widget.product.brand;
@@ -65,7 +68,7 @@ class _EditProductState extends State<EditProduct> {
     _imageUrls = widget.product.images;
   }
 
-  // pic image
+  //
   Future<void> _pickImage() async {
     return showDialog(
       context: context,
@@ -75,16 +78,16 @@ class _EditProductState extends State<EditProduct> {
           children: <Widget>[
             SimpleDialogOption(
               onPressed: () async {
-                Navigator.pop(context);
-                final picker = ImagePicker();
-                final pickedFiles = await picker.pickMultiImage(
-                  imageQuality: 80,
-                  maxWidth: 500,
-                  maxHeight: 500,
+                Navigator.pop(context); // Close the dialog
+                final _picker = ImagePicker();
+                final List<XFile>? pickedFiles = await _picker.pickMultiImage(
+                  imageQuality: 100,
+                  maxWidth: 512,
+                  maxHeight: 512,
                 );
                 if (pickedFiles != null) {
                   setState(() {
-                    _imageFiles = pickedFiles.map((x) => File(x.path)).toList();
+                    _imageFiles = pickedFiles;
                   });
                 }
               },
@@ -95,9 +98,9 @@ class _EditProductState extends State<EditProduct> {
             ),
             SimpleDialogOption(
               onPressed: () async {
-                Navigator.pop(context);
-                final picker = ImagePicker();
-                final pickedFile = await picker.pickImage(
+                Navigator.pop(context); // Close the dialog
+                final _picker = ImagePicker();
+                final pickedFile = await _picker.pickImage(
                   source: ImageSource.camera,
                   imageQuality: 80,
                   maxWidth: 500,
@@ -105,7 +108,7 @@ class _EditProductState extends State<EditProduct> {
                 );
                 if (pickedFile != null) {
                   setState(() {
-                    _imageFiles.add(File(pickedFile.path));
+                    _imageFiles = [pickedFile];
                   });
                 }
               },
@@ -120,7 +123,8 @@ class _EditProductState extends State<EditProduct> {
     );
   }
 
-  // upload image
+  //
+  // Upload images to Firebase Storage
   Future<void> _uploadImages(String productId) async {
     _imageUrls.clear();
     for (int i = 0; i < _imageFiles.length; i++) {
@@ -128,7 +132,12 @@ class _EditProductState extends State<EditProduct> {
           FirebaseStorage.instance.ref().child('products/$productId-$i.jpg');
 
       try {
-        await storageRef.putFile(_imageFiles[i]);
+        if (kIsWeb) {
+          Uint8List bytes = await _imageFiles[i].readAsBytes();
+          await storageRef.putData(bytes);
+        } else {
+          await storageRef.putFile(File(_imageFiles[i].path));
+        }
 
         String downloadUrl = await storageRef.getDownloadURL();
         _imageUrls.add(downloadUrl);
@@ -213,13 +222,13 @@ class _EditProductState extends State<EditProduct> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Regular Price
+                      // cost Price
                       Expanded(
                         flex: 3,
                         child: TextFormField(
-                          controller: _regularPriceController,
+                          controller: _costPriceController,
                           decoration: InputDecoration(
-                            labelText: 'Regular Price',
+                            labelText: 'Cost Price',
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8)),
                             contentPadding: const EdgeInsets.symmetric(
@@ -228,7 +237,7 @@ class _EditProductState extends State<EditProduct> {
                           keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter the regular price';
+                              return 'Please enter the cost price';
                             }
                             return null;
                           },
@@ -258,6 +267,29 @@ class _EditProductState extends State<EditProduct> {
                             double salePrice = double.parse(value);
                             if (regularPrice < salePrice) {
                               return 'Regular price less than sale price';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+
+                      // Regular Price
+                      Expanded(
+                        flex: 3,
+                        child: TextFormField(
+                          controller: _regularPriceController,
+                          decoration: InputDecoration(
+                            labelText: 'Regular Price',
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                            contentPadding: const EdgeInsets.symmetric(
+                                vertical: 14, horizontal: 10),
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter the regular price';
                             }
                             return null;
                           },
@@ -463,64 +495,58 @@ class _EditProductState extends State<EditProduct> {
 
                   const SizedBox(height: 16),
 
-                  // Images
+                  // Image Picker
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        if (_imageFiles.isNotEmpty)
-                          Row(
-                            children: _imageFiles.map((imageFile) {
-                              return Container(
-                                height: 80,
-                                width: 80,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.black12),
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: FileImage(imageFile),
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          )
-                        else
-                          Row(
-                            children: widget.product.images.map((image) {
-                              return Container(
-                                height: 80,
-                                width: 80,
-                                margin: const EdgeInsets.only(right: 8),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.black12),
-                                  image: widget.product.images.isNotEmpty
-                                      ? DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(image),
-                                        )
-                                      : null,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-
-                        //
-                        GestureDetector(
-                          onTap: _pickImage,
-                          child: Container(
+                        if (_imageFiles.isEmpty)
+                          ..._imageUrls.map((imageUrl) {
+                            return Container(
                               height: 80,
                               width: 80,
+                              margin: const EdgeInsets.only(right: 8),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(color: Colors.black12),
+                                image: DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: NetworkImage(imageUrl),
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                size: 32,
-                              )),
+                            );
+                          }),
+
+                        //
+                        ..._imageFiles.map((imageFile) {
+                          return Container(
+                            height: 80,
+                            width: 80,
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.black12),
+                              image: DecorationImage(
+                                fit: BoxFit.cover,
+                                image: kIsWeb
+                                    ? NetworkImage(imageFile.path)
+                                    : FileImage(File(imageFile.path))
+                                        as ImageProvider,
+                              ),
+                            ),
+                          );
+                        }),
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 80,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.black12),
+                            ),
+                            child: const Icon(Icons.add, size: 32),
+                          ),
                         ),
                       ],
                     ),

@@ -167,28 +167,32 @@ class _ProductByCategoryState extends State<ProductByCategory> {
           rows: products.asMap().entries.map((entry) {
             int index = products.length - entry.key; // Reverse index
             var doc = entry.value;
-            String imageUrl =
-                doc['images'] != null && (doc['images'] as List).isNotEmpty
-                    ? doc['images'][0] // First image
-                    : 'https://via.placeholder.com/80'; // Placeholder image
+            String imageUrl = doc['images'] != null &&
+                    (doc['images'] as List).isNotEmpty
+                ? doc['images'][0] // First image
+                : 'https://developers.elementor.com/docs/assets/img/elementor-placeholder-image.png'; // Placeholder image
 
             return DataRow(cells: [
               DataCell(Text(index.toString())),
-              DataCell(GestureDetector(
-                onTap: () {
-                  Get.to(() => ProductDetails(
-                      product: ProductModel.fromQuerySnapshot(doc)));
-                },
-                child: Container(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  child: Image.network(
-                    imageUrl,
-                    height: 56,
-                    width: 56,
-                    fit: BoxFit.cover,
+              DataCell(
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => ProductDetails(
+                        product: ProductModel.fromQuerySnapshot(doc)));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blueAccent.shade100.withValues(alpha: .02),
+                      border: Border.all(color: Colors.black12),
+                      image: DecorationImage(
+                        image: NetworkImage(imageUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
-              )),
+              ),
               DataCell(Text(doc['name'])),
               DataCell(Text(doc['category'])),
               DataCell(Text(doc['brand'])),
@@ -204,10 +208,7 @@ class _ProductByCategoryState extends State<ProductByCategory> {
                   IconButton(
                     icon: const Icon(Icons.delete),
                     onPressed: () {
-                      FirebaseFirestore.instance
-                          .collection('products')
-                          .doc(doc.id)
-                          .delete();
+                      _showDeleteDialog(doc.id);
                     },
                   ),
                 ],
@@ -399,10 +400,7 @@ class _ProductByCategoryState extends State<ProductByCategory> {
                         ),
                         IconButton(
                           onPressed: () {
-                            FirebaseFirestore.instance
-                                .collection('products')
-                                .doc(doc.id)
-                                .delete();
+                            _showDeleteDialog(doc.id);
                           },
                           icon: const Icon(Icons.delete, color: Colors.grey),
                         ),
@@ -427,6 +425,34 @@ class _ProductByCategoryState extends State<ProductByCategory> {
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  //
+  void _showDeleteDialog(String productId) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this product?'),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
+            TextButton(
+              onPressed: () async {
+                await FirebaseFirestore.instance
+                    .collection('products')
+                    .doc(productId) // Reference the product to delete
+                    .delete();
+                Navigator.pop(context);
+              },
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
         );
       },
     );

@@ -211,7 +211,7 @@ class _EditCategoryState extends State<EditCategory> {
       body: Align(
         alignment: Alignment.topCenter,
         child: Container(
-          constraints: BoxConstraints(maxWidth: 600),
+          constraints: const BoxConstraints(maxWidth: 600),
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
@@ -273,6 +273,8 @@ class _EditCategoryState extends State<EditCategory> {
                 );
               }),
               const SizedBox(height: 16),
+
+              //
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -309,6 +311,8 @@ class _EditCategoryState extends State<EditCategory> {
                   ),
                 ],
               ),
+
+              //
               const SizedBox(height: 16),
               Row(
                 children: [
