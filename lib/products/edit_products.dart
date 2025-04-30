@@ -596,14 +596,17 @@ class _EditProductState extends State<EditProduct> {
                                     .collection('products')
                                     .doc(widget.product.id)
                                     .update({
-                                  'name': _nameController.text,
-                                  'description': _descriptionController.text,
+                                  'name': _nameController.text.trim(),
+                                  'description':
+                                      _descriptionController.text.trim(),
                                   'regularPrice': double.parse(
-                                      _regularPriceController.text),
-                                  'salePrice':
-                                      double.parse(_salePriceController.text),
-                                  'stock':
-                                      int.parse(_stockPriceController.text),
+                                      _regularPriceController.text.trim()),
+                                  'salePrice': double.parse(
+                                      _salePriceController.text.trim()),
+                                  'costPrice': double.parse(
+                                      _costPriceController.text.trim()),
+                                  'stock': int.parse(
+                                      _stockPriceController.text.trim()),
                                   'category': _selectedCategory ?? '',
                                   'subCategory': _selectedSubCategory ?? '',
                                   'brand': _selectedBrand ?? '',
