@@ -17,24 +17,28 @@ class DashboardScreen extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(24),
           constraints: const BoxConstraints(maxWidth: 1000),
-          child: Column(
-            spacing: 32,
-            children: [
-              //
-              const PriceSection(),
+          child: SingleChildScrollView(
+            child: Column(
+              spacing: 32,
+              children: [
+                //
+                const PriceSection(),
 
-              //
-              GridView(
-                shrinkWrap: true,
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 250, // Max width for each item
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2, // Controls height relative to width
+                //
+
+                //
+                GridView(
+                  shrinkWrap: true,
+                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 250, // Max width for each item
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.2, // Controls height relative to width
+                  ),
+                  children: _buildAdminSettings(),
                 ),
-                children: _buildAdminSettings(),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -62,6 +66,12 @@ List<Widget> _buildAdminSettings() {
       subtitle: 'Add product details',
       icon: Iconsax.shop,
       routeName: '/products',
+    ),
+    _buildAdminCard(
+      title: 'Sell Product',
+      subtitle: 'Sell product from shop',
+      icon: Iconsax.bill,
+      routeName: '/sell',
     ),
   ];
 }

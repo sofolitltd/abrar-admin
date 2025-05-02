@@ -10,6 +10,7 @@ import '/dashboard_screen.dart';
 import '/products/add_products.dart';
 import '/products/all_products_admin.dart';
 import 'firebase_options.dart';
+import 'sell/sell.dart';
 
 // firebase deploy --only hosting:abraradmin
 
@@ -73,4 +74,5 @@ List<GetPage> appRoutes = [
   GetPage(name: '/categories/add-category', page: () => const AddCategory()),
   GetPage(name: '/products', page: () => const AllProductsAdmin()),
   GetPage(name: '/products/add-product', page: () => const AddProduct()),
+  GetPage(name: '/sell', page: () => const Sell()),
 ];
